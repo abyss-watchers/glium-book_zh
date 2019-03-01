@@ -1,3 +1,7 @@
+
+
+原地址: <https://github.com/glium/glium/blob/master/book/tuto-02-triangle.md>
+
 # 画三角形
 
 OpenGL 并不提供可以直接绘制图形的函数, 例如: `draw_rectangle`, `draw_cube`, `draw_text`等等. 任何图形都是通过同样的方法进行处理: 通过图形管线(graphics pipeline). 对于OpenGL来说, 无论是绘制一个三角形还是一个有成千上万个多边形组成的3D模型还是高级阴影技术, 它们所使用的方法都是一致的.  
