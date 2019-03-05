@@ -1,5 +1,5 @@
-# Introduction
+# 介绍
 
-Hello and welcome to the glium tutorials! This series of tutorials will teach you how to work with OpenGL thanks to the glium library. Glium's API uses the exact same concepts as OpenGL and has been designed to remove the burden of using raw OpenGL function calls, which are often non-portable, tedious and error-prone. Even if for some reason you don't plan on using the glium library in the future, these tutorials can still be useful as they will teach you how OpenGL and graphics programming in general work.
+欢迎来到glium教程!这个系列的教程会告诉你如何通过glium库来使用OpenGL。Glium的API和OpenGL采用了几乎相同的概念，同时移除了直接使用原生OpenGl的种种缺点负担，诸如难以移植，枯燥晦涩，容易出错等。即使出于某些理由你不打算在将来使用glium，这些教程仍然会对你很有用，它们能教会你通用工作中的OpenGL和图形学编程。
 
-If at any moment you encounter an error, please open an issue. Everything related to the window, fullscreen mode, or events is handled by [glutin](https://github.com/tomaka/glutin/issues), while everything related to rendering is handled by [glium](https://github.com/glium/glium/issues).
+如果你偶然间发现了一些错误，请务必提一个issue。所有和窗口，全屏模式，事件相关的内容都由[glutin](https://github.com/tomaka/glutin/issues)提供，而所有和渲染相关的内容则由[glium](https://github.com/glium/glium/issues)提供。
