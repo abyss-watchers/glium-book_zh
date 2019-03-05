@@ -2,14 +2,14 @@
 
 * Tutorial
 
- * [Opening a window](tuto-01-getting-started.md)
- * [Drawing a triangle](tuto-02-triangle.md)
- * [Uniforms](tuto-03-animated-triangle.md)
- * [Matrices](tuto-04-matrices.md)
- * [Adding colors](tuto-05-colors.md)
- * [Adding a texture](tuto-06-texture.md)
- * [A more complex shape](tuto-07-shape.md)
- * [Gouraud shading](tuto-08-gouraud.md)
+ * [打开一个窗口](tuto-01-getting-started.md)
+ * [画一个三角形](tuto-02-triangle.md)
+ * [Uniforms 移动我们的三角形](tuto-03-animated-triangle.md)
+ * [Matrices -矩阵](tuto-04-matrices.md)
+ * [Adding colors 颜色](tuto-05-colors.md)
+ * [Adding a texture -纹理.](tuto-06-texture.md)
+ * [A more complex shape 更复杂的图形](tuto-07-shape.md)
+ * [Gouraud shading 高洛德着色渲染法](tuto-08-gouraud.md)
  * [Depth testing](tuto-09-depth.md)
  * [Adjusting the perspective](tuto-10-perspective.md)
  * [Backface culling](tuto-11-backface-culling.md)
