@@ -1,9 +1,10 @@
-# The perspective
 
-The matrix that we pass to the shader when drawing our teapot contains the position, rotation
-and scale of our teapot model. The third row of the fourth column, for example, holds the z
-coordinate of the object. If we change it to `0.5` it will increase the z position of the
-object by `0.5`.
+
+原地址: <https://github.com/glium/glium/blob/master/book/tuto-10-perspective.md>
+
+# 透视
+
+在绘制茶壶时, 我们传递给着色器的矩阵中包含有茶壶模型的位置, 角度和大小等信息. 例如: 第三行第四列的元素就是物体的z坐标. 如果我们把它改成 `0.5`, 物体的z轴坐标就会增加 `0.5`.   
 
 ```rust
 let matrix = [
@@ -14,49 +15,33 @@ let matrix = [
 ];
 ```
 
-*Note: this is really the third row of the fourth column. Matrices are stored in column-major
-order, meaning that we store the first column, then the second column, then the third column,
-then the fourth column.*
+*注意: 这里修改的确实是第三行第四列的元素. 因为矩阵是按列主序(column-major)来储存元素的, 这意味着我们先储存第一列, 再储存第二列, 然后第三列, 然后第四列.*  
 
-...except that there is absolutely no change and our model is still in the same position. This
-works, however, if you change the x or y coordinate.
+...没有任何变化, 我们的模型依然在原来的位置, 看上去上面的修改似乎没用. 不过, 如果你修改的是x或者y坐标, 你就会发现修改这个矩阵确实可以改变模型的位置.  
 
-The reason why changing the depth of the object has no effect is that our scene doesn't have
-any perspective! The depth is only used in conjunction with the depth buffer (see previous
-section) and that's it. In the real life, the further an object is from the eye the smaller it
-should appear.
+而修改物体深度值没有任何反应的原因在于, 我们的场景没有任何透视(perspective)! 在之前的章节里, 深度值只在深度缓冲及进行深度测试时才有使用. 而在现实生活中, 物体离我们的眼睛越远, 它看上去就越小.  
 
-## Correcting the perspective
+## 矫正透视
 
-In order to make objects further away look smaller, the solution is simple: divide the x and y
-coordinates by the z coordinate (multiplied by a constant). Since the coordinate `(0, 0)` is
-at the center of the screen, objects that are far away will look like they are more towards
-the center of the screen, which is the [vanishing point](https://en.wikipedia.org/wiki/Vanishing_point).
+为了让物体符合透视规律的解决方法很简单: 将x坐标和y坐标值除以z坐标值(乘以某个系数之后的值). 因为坐标点 `(0, 0)` 是屏幕的中心, 因此越远处的物体看上去就越靠近屏幕的中心, 这就是[灭点](https://en.wikipedia.org/wiki/Vanishing_point).  
 
-But it is not possible with simple matrix multiplications to divide x and y by z. This is where
-the fourth coordinate of `gl_Position` comes into play! Instead of dividing x and y, we are
-going to put the factor in the `w` coordinate. After the vertex shader is executed, the first
-three coordinates will be divided by `w`.
+不过, 想用简单的矩阵乘法来将x和y除以z是不可能的. 这就到了 `gl_Position` 的第四个坐标表演的时候了! 我们将系数存到 `w` 坐标中. 在顶点着色器执行之后, 将前三个坐标除以 `w` .  
 
-Don't worry if this seem confusing. The most important thing to remember is that this fourth
-coordinate exists to serve as a mathematical trick for perspective correction.
+虽然看上去很让人费解, 不过别担心. 你只需记住, `gl_Position` 的第四个坐标就是专门用来矫正透视的.  
 
-## Aspect ratio
+## 宽高比
 
-Another thing that you may have noticed is that our teapot will stretch to fill the whole window.
-This is normal since the coordinates `-1` to `1` correspond to the borders of the window.
+也许你已经发现了另一个问题, 我们的茶壶模型将会被拉伸, 以填满整个窗口. 这很正常, 因为坐标值 `-1` 到 `1` 指的是窗口的边.   
 
-However in video games the scene is not stretched. Instead if you resize the window you will
-notice that you will see a larger or smaller part of the scene.
+然而在真正的游戏中场景并不会拉伸. 而且, 如果你调整窗口的大小, 你将发现场景会随着窗口的大小变化而变化.  
 
-To fix this we need to multiply the x coordinate by the height/width ratio of the screen.
-We compress the objects of our scene so that when they are stretched out to match the window's
-dimensions they get back to their original aspect.
+为了解决这个问题, 我们需要用窗口的高度(height)/宽度(width)的比值来乘物体x坐标.  
 
-## Introducing the perspective matrix
+这样将压缩场景中的物体. 如果它们为了匹配窗口的尺寸而被拉伸, 其形状不会改变.  
 
-The reason why these two problems are in the same tutorial is because graphics engines usually
-solve both with one matrix: the **perspective matrix**.
+## 透视矩阵简介
+
+我们之所以在同一节指南里介绍这两个问题, 是因为图形引擎通常使用同一个矩阵来解决它们: **透视矩阵(perspective matrix)**.  
 
 ```rust
 let perspective = {
@@ -78,26 +63,17 @@ let perspective = {
 };
 ```
 
-*Note: there are actually two different conventions: left-handed and right-handed.
-For this tutorial we are using the left-handed because it doesn't invert the z coordinate.*
+*注意: 有两种惯用的坐标系: 左手坐标系(left-handed)和右手坐标系(right-handed). 本指南使用左手坐标系, 因为左手坐标系不会反转z坐标.*
 
-There are four parameters used when building the matrix:
+在构建矩阵时会用到四个参数:  
 
- - The aspect ratio, which is `height / width`.
- - The *field of view* (or *fov*), which is the angle of the camera. If you have played
-   first person shooters, you probably know about this. There is no "right" value as it
-   depends on the user's preferences and setup. If you play on a computer you usually
-   need a higher fov than if you play on a television.
- - `znear` and `zfar` are the minimal and maximal depth values that are within the
-   player's field of view. These values do not impact the visual aspect of the scene
-   but they can be important for the precision of the depth buffer.
+ - 宽高比, 为 `height / width`.  
+ - *视场(field of view, 也称为fov)*, 就是摄像机的角度. 如果你玩过fps游戏, 可能知道这个概念. 它的取值实际上取决于用户的喜好和配置, 所以并没有一个绝对正确的值. 比如, 在电脑上玩游戏比起在电视上玩通常需要设置更高的fov值.  
+ - `znear` 和 `zfar` 就是在用户的视场(fov)中可见的最大的深度值和最小深度值. 这些值对于深度缓冲的精度很重要, 不过并不会影响场景显示的视觉效果.  
 
-Don't worry if you don't understand precisely what is going on. This matrix is required to
-make the scene look realistic.
+如果你不清楚到底发生了什么, 别担心. 这个矩阵只是让程序显示的场景看上去更真实.  
 
-Since we don't want to multiply our normals by our perspective matrix, we are going to
-use two different matrices: the regular matrix containing the regular transformations
-of our object, and the perspective matrix.
+我们不会用透视矩阵去乘法线, 这里我们使用两个不同的矩阵: 含有物体变换信息的matrix和透视矩阵.  
 
 ```glsl
 #version 140
@@ -107,16 +83,16 @@ in vec3 normal;
 
 out vec3 v_normal;
 
-uniform mat4 perspective;       // new
+uniform mat4 perspective;       // 新增
 uniform mat4 matrix;
 
 void main() {
     v_normal = transpose(inverse(mat3(matrix))) * normal;
-    gl_Position = perspective * matrix * vec4(position, 1.0);       // new
+    gl_Position = perspective * matrix * vec4(position, 1.0);       // 新增
 }
 ```
 
-Don't forget to pass the additional uniform:
+别忘了传递额外的uniform变量:  
 
 ```rust
 target.draw((&positions, &normals), &indices, &program,
@@ -124,8 +100,7 @@ target.draw((&positions, &normals), &indices, &program,
             &params).unwrap();
 ```
 
-The scene now has a correct perspective calculation! We can now move the teapot between
-any value between `znear` and `zfar`. For example `2.0`:
+现在我们的场景里有了正确的透视规律! 我们可以在 `znear` 和 `zfar` 之间任意移动我们的茶壶, 例如:  
 
 ```rust
 let matrix = [
@@ -136,14 +111,13 @@ let matrix = [
 ];
 ```
 
-And here is the result:
+结果如下:  
 
-![Result](tuto-10-result.png)
+![结果](tuto-10-result.png)
 
-Also note that the object keeps its regular look even when we resize the dimension and is no
-longer stretched.
+同时注意: 物体保持了它原来的样子. 现在, 即使我们改变窗口的尺寸, 它也不会发生被拉伸.  
 
-If you compare this to the previous screenshot, you can also see how the teapot now looks
-much better.
+和上一节的截图相比, 现在的茶壶看上去好多了.  
 
-**[You can find the entire source code here](https://github.com/glium/glium/blob/master/examples/tutorial-10.rs).**
+**[完整的代码在此](https://github.com/glium/glium/blob/master/examples/tutorial-10.rs).**
+
