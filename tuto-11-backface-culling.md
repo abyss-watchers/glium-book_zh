@@ -1,39 +1,31 @@
-# Backface culling
 
-Before going further, there's one last thing to know about 3D rendering.
 
-After your vertex shader outputs the vertex coordinates on the screen,
-each triangle can be in two possible situations:
+原地址: <https://github.com/glium/glium/blob/master/book/tuto-11-backface-culling.md>
 
- - Its three vertices are in clockwise order on the screen.
- - Its three vertices are in counter-clockwise order on the screen.
+# 背面剔除
 
-If you ever rotate a triangle in order to see its back, then it will be in the other category.
+还有一件事.  
 
-Therefore you can associate the face of the triangle you're seeing to a order on the screen.
-For example if the triangle is clockwise, then you're seeing face A, and if the triangle is
-counter-clockwise, then you're seeing face B.
+顶点着色器在屏幕上输出顶点坐标之后, 每个三角形可能处在以下两种状态之一:  
 
-When you draw a 3D models, there are faces that you don't need to draw: the faces that are inside
-of the model. Models are usually seen from the outside, so it's not a problem if the inside
-doesn't actually exist.
+ - 三角形的三个顶点是按照顺时针的方向在屏幕上绘制的.  
+ - 三角形的三个顶点是按照逆时针的方向在屏幕上绘制的.  
 
-If you make sure that all triangles of your model are in counter-clockwise order when the outside
-is facing the camera (which is the case for the teapot used in these tutorials), you can ask the
-video card to automatically discard all triangles that are in clockwise order. This technique is
-called *backface culling*. Your 3D modelling software usually ensures that this convention is
-applied.
+假设某个三角形是按顺时针方向绘制的, 当你把视角转到它的背面, 这个三角形三个顶点的绘制方向就变成逆时针的了.  
 
-Most of the time this is purely an optimization. By discarding half of the triangles after the
-vertex shader step, you reduce by half the number of fragment shader invocations. This can lead
-to a pretty good speedup.
+因此你所看到的三角形的面就与其三个顶点的绘制方向联系起来. 例如. 如果三角形是顺时针的, 那么你看到的就是三角形的A面, 如果三角形是逆时针的, 那么你看到的就是三角形的B面.  
 
-## Backface culling in glium
+在绘制3D模型时, 有些面是不用绘制的: 那些位于模型背部的面. 人们通常只会看到模型朝向摄像机的那部分, 因此模型背朝摄像机的那些面存不存在都无所谓.  
 
-Using backface culling in glium just consists in modifying a variable in the `DrawParameters` that
-you pass to the `draw` function.
+如果你可以确保模型中朝向摄像机的那部分(即模型在摄像机视角内可见的部分)的三角形都是逆时针的, 而背朝摄像机的那部分(即模型在摄像机视角内不可见的部分)的三角形都是顺时针的, 你就能要求显卡自动丢弃那些顺时针的三角形. 这项技术被称为 *背面剔除(backface culling)*. 你所使用的3D模型软件通常可以确定这项技术是否可以正确地应用到你的模型上.  
 
-Just replace:
+这项技术多数时候是为了优化. 通过在顶点着色器步骤之后舍弃掉半数三角形, 将片段着色器的调用次数减少了一半. 可以大大提高OpenGL的程序性能.  
+
+## glium中的背面剔除
+
+只需要在 `DrawParameters` 中增加一个变量.  
+
+把:  
 
 ```rust
 let params = glium::DrawParameters {
@@ -46,7 +38,7 @@ let params = glium::DrawParameters {
 };
 ```
 
-With:
+换成:  
 
 ```rust
 let params = glium::DrawParameters {
@@ -60,6 +52,4 @@ let params = glium::DrawParameters {
 };
 ```
 
-However we are not going to enable this for the teapot because the model is not closed. You can
-look through holes and not see anything inside. 3D models are usually entirely closed, but not
-our teapot.
+然而, 我们并不打算对茶壶模型开启这项功能, 因为茶壶模型不是封闭的. 当你从壶口向里看时, 你将什么都看不见. 3D模型通常都是完全封闭的, 不过我们的茶壶模型不是.  
