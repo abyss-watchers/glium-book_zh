@@ -49,7 +49,7 @@ fn main() {
 fn main() {
     use glium::glutin;
 
-    let mut events_loop = glutin::EventsLoop::new();
+    let mut events_loop = glutin::event_loop::EventsLoop::new();
     let window = glutin::WindowBuilder::new();
     let context = glutin::ContextBuilder::new();
     let display = glium::Display::new(window, context, &events_loop).unwrap();
@@ -59,19 +59,21 @@ fn main() {
 但是有一个问题: 在窗口创建完成时, 我们的main函数就退出了, 导致 `display` 的析构函数关闭了窗口. 为了避免这个问题, 我们需要创建一个无限循环, 直到收到 `CloseRequested` 事件为止:  
 
 ```rust
-let mut closed = false;
-while !closed {
-    // 列出由应用生成的事件并等待接收
-    events_loop.poll_events(|ev| {
+events_loop.run(move |ev, _, control_flow| {
+        let next_frame_time = std::time::Instant::now() + std::time::Duration::from_nanos(16_666_667);
+        *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
+
         match ev {
-            glutin::Event::WindowEvent { event, .. } => match event {
-                glutin::WindowEvent::CloseRequested => closed = true,
-                _ => (),
+            glutin::event::Event::WindowEvent { event, .. } => match event {
+                glutin::event::WindowEvent::CloseRequested => {
+                    *control_flow = glutin::event_loop::ControlFlow::Exit;
+                    return;
+                }
+                _ => return,
             },
             _ => (),
         }
     });
-}
 ```
 
 虽然, 这段代码将导致CPU占用率达到100%, 但是已经解决了上面所说的问题. 在实际的应用程序中, 你应当使用垂直同步或者在每次循环结束时sleep几毫秒, 不过这是之后要考虑的事了.  
@@ -115,29 +117,44 @@ target.finish().unwrap();
 以下是所有的代码:  
 
 ```rust
+use glium::{glutin, Surface};
+
 fn main() {
-    use glium::{glutin, Surface};
+    // 1. The **winit::EventsLoop** for handling events.
+    let events_loop = glutin::event_loop::EventLoop::new();
+    // 2. Parameters for building the Window.
+    let wb = glium::glutin::window::WindowBuilder::new()
+        .with_inner_size(glium::glutin::dpi::LogicalSize::new(960.0, 640.0))
+        .with_title("Hello world");
+    // 3. Parameters for building the OpenGL context.
+    let cb = glium::glutin::ContextBuilder::new().with_vsync(true);
+    // 4. Build the Display with the given window and OpenGL context parameters and register the
+    //    window with the events_loop.
+    let display = glium::Display::new(wb, cb, &events_loop).unwrap();
 
-    let mut events_loop = glium::glutin::EventsLoop::new();
-    let window = glium::glutin::WindowBuilder::new();
-    let context = glium::glutin::ContextBuilder::new();
-    let display = glium::Display::new(window, context, &events_loop).unwrap();
+    let gl_version = display.get_opengl_version();
+    println!("{:?}", gl_version);
 
-    let mut closed = false;
-    while !closed {
+    events_loop.run(move |ev, _, control_flow| {
         let mut target = display.draw();
-        target.clear_color(0.0, 0.0, 1.0, 1.0);
+        target.clear_color(0.4, 0.5, 0.8, 0.8);
         target.finish().unwrap();
 
-        events_loop.poll_events(|ev| {
-            match ev {
-                glutin::Event::WindowEvent { event, .. } => match event {
-                    glutin::WindowEvent::CloseRequested => closed = true,
-                    _ => (),
-                },
-                _ => (),
-            }
-        });
-    }
+        let next_frame_time =
+            std::time::Instant::now() + std::time::Duration::from_nanos(16_666_667);
+        *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
+
+        match ev {
+            glutin::event::Event::WindowEvent { event, .. } => match event {
+                glutin::event::WindowEvent::CloseRequested => {
+                    *control_flow = glutin::event_loop::ControlFlow::Exit;
+                    return;
+                }
+                _ => return,
+            },
+            _ => (),
+        }
+    });
 }
+
 ```
